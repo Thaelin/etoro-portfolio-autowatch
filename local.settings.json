@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "DURABLE_TASK_SCHEDULER_CONNECTION_STRING": "Endpoint=http://localhost:8080;TaskHub=default;Authentication=None",
+    "KEY_VAULT_URL": "https://kv-jhu.vault.azure.net/",
+    "ETORO_API_KEY_SECRET_NAME": "etoro-api-key",
+    "ETORO_USER_KEY_SECRET_NAME": "etoro-user-key"
+  }
+}

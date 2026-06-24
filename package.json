@@ -1,0 +1,21 @@
+{
+  "name": "etoro-portfolio-autowatch",
+  "version": "1.0.0",
+  "description": "Azure durable function to automatically do daily analysis of Etoro portfolio",
+  "main": "dist/src/functions/*.js",
+  "scripts": {
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "@azure/identity": "^4.13.1",
+    "@azure/keyvault-secrets": "^4.11.2",
+    "durable-functions": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
