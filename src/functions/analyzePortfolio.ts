@@ -4,6 +4,7 @@ import { OrchestrationContext, OrchestrationHandler } from "durable-functions";
 import { randomUUID } from "crypto";
 
 import { PortfolioData } from "../model/portfolioData";
+import { InstrumentsData } from "../model/instrumentsData";
 import { SecretsService } from "../secrets/secretsService";
 
 
@@ -40,8 +41,41 @@ df.app.activity("fetchPortfolioData", {
     }
 });
 
+df.app.activity("fetchInstrumentsData", {
+    handler: async (instrumentIds: number[]): Promise<InstrumentsData> => {
+        const secretsService = SecretsService.instance;
+        const apiKey = await secretsService.getSecret(etoroApiKeySecretName);
+        const userKey = await secretsService.getSecret(etoroUserKeySecretName);
+
+        const instrumentIdParam = instrumentIds.join(",");
+        const url = `https://public-api.etoro.com/api/v1/instruments/discover?page=1&pageSize=${instrumentIds.length}&instrumentId=123`;
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-request-id": randomUUID(),
+                "x-api-key": apiKey,
+                "x-user-key": userKey
+            }
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`Failed to fetch instruments data: ${response.status} ${response.statusText}. Body: ${errorBody}`);
+        }
+
+        return (await response.json()) as InstrumentsData;
+    }
+});
+
 const chainingOrchestrator: OrchestrationHandler = function* (context: OrchestrationContext) {
-  yield context.df.callActivity("fetchPortfolioData");
+  const portfolioData: PortfolioData = yield context.df.callActivity("fetchPortfolioData");
+  const uniqueInstruments = Array.from(new Set(portfolioData.clientPortfolio.positions.map(position => position.instrumentID)));
+  
+  const instrumentsData: InstrumentsData = yield context.df.callActivity("fetchInstrumentsData", uniqueInstruments);
+
+  console.log(instrumentsData, portfolioData);
+  
   return null;
 };
 df.app.orchestration("chainingOrchestration", chainingOrchestrator);
