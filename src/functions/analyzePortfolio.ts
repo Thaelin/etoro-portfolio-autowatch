@@ -4,7 +4,7 @@ import { OrchestrationContext, OrchestrationHandler } from "durable-functions";
 import { randomUUID } from "crypto";
 
 import { PortfolioData } from "../model/portfolioData";
-import { InstrumentsData } from "../model/instrumentsData";
+import { MarketData } from "../model/marketData";
 import { SecretsService } from "../secrets/secretsService";
 
 
@@ -41,14 +41,65 @@ df.app.activity("fetchPortfolioData", {
     }
 });
 
-df.app.activity("fetchInstrumentsData", {
-    handler: async (instrumentIds: number[]): Promise<InstrumentsData> => {
+df.app.activity("fetchMarketData", {
+    handler: async (instrumentIds: number[]): Promise<MarketData> => {
         const secretsService = SecretsService.instance;
         const apiKey = await secretsService.getSecret(etoroApiKeySecretName);
         const userKey = await secretsService.getSecret(etoroUserKeySecretName);
 
-        const instrumentIdParam = instrumentIds.join(",");
-        const url = `https://public-api.etoro.com/api/v1/instruments/discover?page=1&pageSize=${instrumentIds.length}&instrumentId=123`;
+        const fields = [
+            "instrumentId",
+            "displayname",
+            "popularityUniques7Day",
+            "instrumentTypeID",
+            "instrumentType",
+            "exchangeID",
+            "isOpen",
+            "isHiddenFromClient",
+            "internalInstrumentId",
+            "internalCryptoTypeId",
+            "internalExchangeId",
+            "internalExchangeName",
+            "internalAssetClassName",
+            "dailyPriceChange",
+            "absDailyPriceChange",
+            "weeklyPriceChange",
+            "monthlyPriceChange",
+            "isDelisted",
+            "isCurrentlyTradable",
+            "isExchangeOpen",
+            "internalClosingPrice",
+            "isActiveInPlatform",
+            "isBuyEnabled",
+            "currentRate",
+            "threeMonthPriceChange",
+            "sixMonthPriceChange",
+            "oneYearPriceChange",
+            "currMonthPriceChange",
+            "currQuarterPriceChange",
+            "currYearPriceChange",
+            "lastYearPriceChange",
+            "lastTwoYearsPriceChange",
+            "oneMonthAgoPriceChange",
+            "twoMonthsAgoPriceChange",
+            "threeMonthsAgoPriceChange",
+            "sixMonthsAgoPriceChange",
+            "oneYearAgoPriceChange",
+            "traders7DayChange",
+            "traders14DayChange",
+            "traders30DayChange",
+            "popularityUniques14Day",
+            "popularityUniques30Day",
+            "popularityUniques",
+            "holdingPct",
+            "buyHoldingPct",
+            "sellHoldingPct",
+            "buyPctChange24Hours",
+            "absBuyPctChange24Hours",
+            "industryNameId",
+            "sectorNameId"
+        ];
+        const url = `https://public-api.etoro.com/api/v1/market-data/search?fields=${fields}&pageNumber=1&pageSize=${instrumentIds.length}&instrumentId=${instrumentIds}`;
 
         const response = await fetch(url, {
             method: "GET",
@@ -61,21 +112,20 @@ df.app.activity("fetchInstrumentsData", {
 
         if (!response.ok) {
             const errorBody = await response.text();
-            throw new Error(`Failed to fetch instruments data: ${response.status} ${response.statusText}. Body: ${errorBody}`);
+            throw new Error(`Failed to fetch market data: ${response.status} ${response.statusText}. Body: ${errorBody}`);
         }
 
-        return (await response.json()) as InstrumentsData;
+        return (await response.json()) as MarketData;
     }
 });
 
 const chainingOrchestrator: OrchestrationHandler = function* (context: OrchestrationContext) {
   const portfolioData: PortfolioData = yield context.df.callActivity("fetchPortfolioData");
   const uniqueInstruments = Array.from(new Set(portfolioData.clientPortfolio.positions.map(position => position.instrumentID)));
-  
-  const instrumentsData: InstrumentsData = yield context.df.callActivity("fetchInstrumentsData", uniqueInstruments);
-
-  console.log(instrumentsData, portfolioData);
-  
+  const marketData: MarketData = yield context.df.callActivity("fetchMarketData", uniqueInstruments);
+  // TODO: news feed
+  // TODO: analyze with AI
+  // TODO: send analysis to e-mail
   return null;
 };
 df.app.orchestration("chainingOrchestration", chainingOrchestrator);
@@ -91,4 +141,3 @@ app.http("triggerOrchestration", {
         return client.createCheckStatusResponse(request, instanceId);
     },
 });
-

@@ -1,0 +1,59 @@
+export interface MarketData {
+  instrumentId: number;
+  displayname: string;
+  popularityUniques7Day: number;
+  instrumentTypeID: number;
+  instrumentType: string;
+  exchangeID: number;
+  isOpen: boolean;
+  isHiddenFromClient: boolean;
+  internalInstrumentId: number;
+  internalCryptoTypeId: number;
+  internalExchangeId: number;
+  internalExchangeName: string;
+  internalAssetClassName: string;
+  dailyPriceChange: number;
+  absDailyPriceChange: number;
+  weeklyPriceChange: number;
+  monthlyPriceChange: number;
+  isDelisted: boolean;
+  isCurrentlyTradable: boolean;
+  isExchangeOpen: boolean;
+  internalClosingPrice: number;
+  isActiveInPlatform: boolean;
+  isBuyEnabled: boolean;
+  currentRate: number;
+  threeMonthPriceChange: number;
+  sixMonthPriceChange: number;
+  oneYearPriceChange: number;
+  currMonthPriceChange: number;
+  currQuarterPriceChange: number;
+  currYearPriceChange: number;
+  lastYearPriceChange: number;
+  lastTwoYearsPriceChange: number;
+  oneMonthAgoPriceChange: number;
+  twoMonthsAgoPriceChange: number;
+  threeMonthsAgoPriceChange: number;
+  sixMonthsAgoPriceChange: number;
+  oneYearAgoPriceChange: number;
+  traders7DayChange: number;
+  traders14DayChange: number;
+  traders30DayChange: number;
+  popularityUniques14Day: number;
+  popularityUniques30Day: number;
+  popularityUniques: number;
+  holdingPct: number;
+  buyHoldingPct: number;
+  sellHoldingPct: number;
+  buyPctChange24Hours: number;
+  absBuyPctChange24Hours: number;
+  industryNameId: number;
+  sectorNameId: number;
+}
+
+export interface InstrumentsData {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  items: MarketData[];
+}
